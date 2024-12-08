@@ -1,31 +1,56 @@
-# Visit https://github.com/lowlighter/metrics#-documentation for full reference
-name: daily-metrics
+name: Metrics
+
 on:
   # Schedule updates (each hour)
-  schedule: [{cron: "0 * * * *"}]
+  schedule:
+    - cron: "0 * * * *"
   # Lines below let you run workflow manually and on each commit
   workflow_dispatch:
-  push: {branches: ["master", "main"]}
+  push:
+    branches:
+      - master
+      - main
+
 jobs:
   github-metrics:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # Allow write access to contents so we can push changes
+
     steps:
-      - uses: lowlighter/metrics@latest
+      - name: Checkout Repository
+        uses: actions/checkout@v2  # Check out the repository
+
+      - name: Generate GitHub Metrics
+        uses: lowlighter/metrics@latest
         with:
-          # Your GitHub token
-          # The following scopes are required:
-          #  - public_access (default scope)
-          # The following additional scopes may be required:
-          #  - read:org      (for organization related metrics)
-          #  - read:user     (for user related data)
-          #  - read:packages (for some packages related data)
-          #  - repo          (optional, if you want to include private repositories)
+          # Your GitHub token (configured in repository secrets)
           token: ${{ secrets.METRICS_TOKEN }}
 
-          # Options
-          user: Devdnv
+          # Options to customize the output
+          user: devdnv
           template: classic
           base: header, activity, community, repositories, metadata
           config_timezone: Asia/Calcutta
+          
+          # Output settings (SVG)
+          config_output: svg
+          filename: metrics.svg  # The file name of the metrics output image
+          
+          # Enable specific plugins for the metrics
+          plugin_languages: yes          # Enable language usage stats
+          plugin_languages_details: bytes-size, percentage  # Display language stats by size and percentage
+          plugin_achievements: yes       # Enable GitHub achievements plugin
+          plugin_achievements_threshold: C  # Minimum achievement level to show
+          plugin_achievements_secrets: yes  # Display secret achievements
+          plugin_achievements_display: compact  # Show achievements in a compact display
+
+      - name: Commit metrics to the repository
+        uses: GitHub Actions for GitHub Pages
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add metrics.svg  # Add the generated SVG metrics file
+          git commit -m "build: update metrics.svg"  # Commit the updated metrics
+          git push origin github-metrics  # Push to a new branch (can be your dedicated metrics branch)
+
