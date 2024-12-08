@@ -1,80 +1,31 @@
+# Visit https://github.com/lowlighter/metrics#-documentation for full reference
 name: daily-metrics
-
 on:
-  workflow_dispatch: # Allows manual triggering
-  push:              # Trigger on pushes to main
-    branches:
-      - main
-  schedule:          # Run automatically at midnight UTC every day
-    - cron: "0 0 * * *"
-
-jobs:   
-  stats:
+  # Schedule updates (each hour)
+  schedule: [{cron: "0 * * * *"}]
+  # Lines below let you run workflow manually and on each commit
+  workflow_dispatch:
+  push: {branches: ["master", "main"]}
+jobs:
+  github-metrics:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: lowlighter/metrics@v3.21
+      - uses: lowlighter/metrics@latest
         with:
-          # Personal token setup
+          # Your GitHub token
+          # The following scopes are required:
+          #  - public_access (default scope)
+          # The following additional scopes may be required:
+          #  - read:org      (for organization related metrics)
+          #  - read:user     (for user related data)
+          #  - read:packages (for some packages related data)
+          #  - repo          (optional, if you want to include private repositories)
           token: ${{ secrets.METRICS_TOKEN }}
-          # GITHUB_TOKEN is a special auto-generated token for commits
-          committer_token: ${{ secrets.GITHUB_TOKEN }}
-          committer_branch: github-metrics
-          committer_message: "build: update `${filename}`"
 
           # Options
           user: Devdnv
           template: classic
-          base: header, activity, community
-          config_timezone: Asia/Kolkata
-
-  language:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: lowlighter/metrics@v3.21
-        with:
-          # Personal token setup
-          token: ${{ secrets.METRICS_TOKEN }}
-          # GITHUB_TOKEN is a special auto-generated token for commits
-          committer_token: ${{ secrets.GITHUB_TOKEN }}
-          committer_branch: github-metrics
-          committer_message: "build: update `${filename}`"
-
-          # Options
-          user: Devdnv
-          template: classic
-          base: ""
-          config_display: large
-          config_timezone: Asia/Kolkata
-          config_output: svg
-          filename: language.svg
-
-          # Language plugin
-          plugin_languages: yes
-          plugin_languages_details: bytes-size, percentage
-
-  achievements:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: lowlighter/metrics@v3.21
-        with:
-          # Personal token setup
-          token: ${{ secrets.METRICS_TOKEN }}
-          # GITHUB_TOKEN is a special auto-generated token for commits
-          committer_token: ${{ secrets.GITHUB_TOKEN }}
-          committer_branch: github-metrics
-          committer_message: "build: update `${filename}`"
-
-          # Options
-          user: Devdnv
-          template: classic
-          base: ""
-          config_display: large
-          config_timezone: Asia/Kolkata
-          config_output: svg
-          filename: achievements.svg
-
-          # Achievement plugin
-          plugin_achievements: yes
-          plugin_achievements_threshold: C
-          plugin_achievements_secrets: yes
-          plugin_achievements_display: compact
+          base: header, activity, community, repositories, metadata
+          config_timezone: Asia/Calcutta
