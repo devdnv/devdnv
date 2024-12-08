@@ -1,4 +1,6 @@
 # My GitHub Profile
 
-<img src="/github-metrics.svg" alt="Metrics" width="100%">
+# My GitHub Profile
 
+<!--START_SECTION:metrics-->
+<!--END_SECTION:metrics-->
