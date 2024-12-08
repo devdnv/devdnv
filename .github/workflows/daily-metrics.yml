@@ -1,56 +1,27 @@
-name: Metrics
+name: daily-metrics
 
 on:
-  # Schedule updates (each hour)
   schedule:
-    - cron: "0 * * * *"
-  # Lines below let you run workflow manually and on each commit
-  workflow_dispatch:
-  push:
-    branches:
-      - master
-      - main
+    - cron: "0 0 * * *" # Runs daily
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
-  github-metrics:
+  metrics:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Allow write access to contents so we can push changes
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2  # Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Generate GitHub Metrics
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Generate Metrics
         uses: lowlighter/metrics@latest
         with:
-          # Your GitHub token (configured in repository secrets)
           token: ${{ secrets.METRICS_TOKEN }}
-
-          # Options to customize the output
           user: devdnv
           template: classic
-          base: header, activity, community, repositories, metadata
-          config_timezone: Asia/Calcutta
-          
-          # Output settings (SVG)
-          config_output: svg
-          filename: metrics.svg  # The file name of the metrics output image
-          
-          # Enable specific plugins for the metrics
-          plugin_languages: yes          # Enable language usage stats
-          plugin_languages_details: bytes-size, percentage  # Display language stats by size and percentage
-          plugin_achievements: yes       # Enable GitHub achievements plugin
-          plugin_achievements_threshold: C  # Minimum achievement level to show
-          plugin_achievements_secrets: yes  # Display secret achievements
-          plugin_achievements_display: compact  # Show achievements in a compact display
-
-      - name: Commit metrics to the repository
-        uses: GitHub Actions for GitHub Pages
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add metrics.svg  # Add the generated SVG metrics file
-          git commit -m "build: update metrics.svg"  # Commit the updated metrics
-          git push origin github-metrics  # Push to a new branch (can be your dedicated metrics branch)
-
+          plugins: activity, languages, stars
+          readme: true # Automatically updates README
